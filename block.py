@@ -59,6 +59,31 @@ def validate_header(header, target_difficulty):
         raise ValueError("Block does not meet target difficulty")
 
 
+def target_to_bits(target):
+    # Convert target to bytes
+    target_bytes = bytes.fromhex(target)
+
+    # Find the first non-zero byte
+    for i in range(len(target_bytes)):
+        if target_bytes[i] != 0:
+            break
+
+    # Calculate exponent
+    exponent = len(target_bytes) - i
+
+    # Calculate coefficient
+    if len(target_bytes[i:]) >= 3:
+        coefficient = int.from_bytes(target_bytes[i : i + 3], byteorder="big")
+    else:
+        coefficient = int.from_bytes(target_bytes[i:], byteorder="big")
+
+    # Combine exponent and coefficient into bits
+    bits = (exponent << 24) | coefficient
+
+    # Return bits as a hexadecimal string
+    return hex(bits)
+
+
 def mine_block(transactions):
     """
     Mine a block with the given transactions.
@@ -117,7 +142,7 @@ def mine_block(transactions):
     )
     merkle_root_bytes = bytes.fromhex(merkle_root)
     timestamp_bytes = int(time.time()).to_bytes(4, "little")
-    bits_bytes = bytes.fromhex(DIFFICULTY_TARGET[:8])
+    bits_bytes = bytes.fromhex(target_to_bits(DIFFICULTY_TARGET))
     nonce_bytes = nonce.to_bytes(4, "little")
 
     # Combine the header parts
@@ -132,6 +157,7 @@ def mine_block(transactions):
 
     # Attempt to find a nonce that results in a hash below the difficulty target
     target = int(DIFFICULTY_TARGET, 16)
+    print("target:", target)
     while True:
         block_hash = hashlib.sha256(hashlib.sha256(block_header).digest()).digest()
         reversed_hash = block_hash[::-1]
@@ -146,9 +172,10 @@ def mine_block(transactions):
 
     block_header_hex = block_header.hex()
     validate_header(block_header_hex, DIFFICULTY_TARGET)
-    print(block_header_hex)
+    # print(block_header_hex)
     header_bytes = bytes.fromhex(block_header_hex)
-    merkle_root_from_header = header_bytes[36:68].hex()
+    # print(header_bytes)
+    merkle_root_from_header = header_bytes[36:68]
     print(merkle_root == merkle_root_from_header)
     return block_header_hex, coinbase_tx, txids, nonce, coinbase_tx_hex
 
@@ -179,31 +206,6 @@ def generate_merkle_root(txids):
             next_level.append(pair_hash)
         level = next_level
     return level[0]
-
-
-# def calculate_merkle_root(txids):
-#     """
-#     Calculate the Merkle root of the transactions.
-#     """
-#     if not txids:
-#         return None
-
-#     # Reverse the txids
-#     txids = [txid[::-1] for txid in txids]
-
-#     while len(txids) > 1:
-#         next_level = []
-#         for i in range(0, len(txids), 2):
-#             left = txids[i]
-#             right = txids[i + 1] if i + 1 < len(txids) else left
-#             pair_hash = hashlib.sha256(
-#                 hashlib.sha256((left + right).encode()).digest()
-#             ).hexdigest()
-#             next_level.append(pair_hash)
-#         txids = next_level
-#     return txids[0][
-#         ::-1
-#     ]  # Reverse the final result to match Bitcoin's internal byte order
 
 
 def validate_coinbase_transaction(coinbase_tx):
