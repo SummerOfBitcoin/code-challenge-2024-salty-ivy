@@ -336,7 +336,7 @@ def main():
 
     # Corrected writing to output file
     with open(OUTPUT_FILE, "w") as file:
-        file.write(f"{block_header}\n")
+        file.write(f"{block_header}\n{coinbase_tx_hex}\n")
         file.writelines(f"{txid}\n" for txid in txids)
 
     # Print the total weight and fee of the transactions in the block
