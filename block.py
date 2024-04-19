@@ -133,7 +133,6 @@ def mine_block(transactions):
 
     # Calculate the Merkle root of the transactions
     merkle_root = generate_merkle_root(txids)
-    print(merkle_root)
 
     # Construct the block header
     block_version_bytes = BLOCK_VERSION.to_bytes(4, "little")
@@ -173,10 +172,10 @@ def mine_block(transactions):
     block_header_hex = block_header.hex()
     validate_header(block_header_hex, DIFFICULTY_TARGET)
     # print(block_header_hex)
-    header_bytes = bytes.fromhex(block_header_hex)
+    # header_bytes = bytes.fromhex(block_header_hex)
     # print(header_bytes)
-    merkle_root_from_header = header_bytes[36:68]
-    print(merkle_root == merkle_root_from_header)
+    # merkle_root_from_header = header_bytes[36:68].hex
+    # print(merkle_root == merkle_root_from_header)
     return block_header_hex, coinbase_tx, txids, nonce, coinbase_tx_hex
 
 
@@ -323,7 +322,7 @@ def validate_block(coinbase_tx, txids, transactions):
 def main():
     # Read transaction files
     transactions = []
-    valid_mempool = json.load(open('valid-mempool.json'))
+    valid_mempool = set(json.load(open('valid-mempool.json')))
     print(len(valid_mempool))
     for filename in os.listdir(MEMPOOL_DIR)[:10]:
         transaction = read_transaction_file(filename)
