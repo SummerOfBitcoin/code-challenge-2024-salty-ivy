@@ -171,11 +171,7 @@ def mine_block(transactions):
 
     block_header_hex = block_header.hex()
     validate_header(block_header_hex, DIFFICULTY_TARGET)
-    # print(block_header_hex)
-    # header_bytes = bytes.fromhex(block_header_hex)
-    # print(header_bytes)
-    # merkle_root_from_header = header_bytes[36:68].hex
-    # print(merkle_root == merkle_root_from_header)
+
     return block_header_hex, coinbase_tx, txids, nonce, coinbase_tx_hex
 
 
@@ -324,7 +320,7 @@ def main():
     transactions = []
     valid_mempool = set(json.load(open('valid-mempool.json')))
     print(len(valid_mempool))
-    for filename in os.listdir(MEMPOOL_DIR):
+    for filename in os.listdir(MEMPOOL_DIR)[:5]:
         transaction = read_transaction_file(filename)
         if transaction.get('vin')[0].get('txid') in valid_mempool:
             transactions.append(transaction)
