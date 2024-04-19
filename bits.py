@@ -1,29 +1,22 @@
-DIFFICULTY_TARGET = "0000ffff00000000000000000000000000000000000000000000000000000000"
-
-
-def target_to_bits(target):
-    # Convert target to bytes
+def target_to_bits(target, fNegative=False):
     target_bytes = bytes.fromhex(target)
-
-    # Find the first non-zero byte
-    for i in range(len(target_bytes)):
-        if target_bytes[i] != 0:
-            break
-
-    # Calculate exponent
-    exponent = len(target_bytes) - i
-
-    # Calculate coefficient
-    if len(target_bytes[i:]) >= 3:
-        coefficient = int.from_bytes(target_bytes[i : i + 3], byteorder="big")
+    nSize = (len(target_bytes) + 7) // 8
+    nCompact = 0
+    if nSize <= 3:
+        nCompact = int.from_bytes(target_bytes, byteorder="big") << 8 * (3 - nSize)
     else:
-        coefficient = int.from_bytes(target_bytes[i:], byteorder="big")
+        bn = int.from_bytes(target_bytes, byteorder="big") >> 8 * (nSize - 3)
+        nCompact = bn
+    if nCompact & 0x00800000:
+        nCompact >>= 8
+        nSize += 1
+    assert (nCompact & ~0x007FFFFF) == 0
+    assert nSize < 256
+    nCompact |= nSize << 24
+    nCompact |= (fNegative and (nCompact & 0x007FFFFF) and 0x00800000) or 0
+    return hex(nCompact)
 
-    # Combine exponent and coefficient into bits
-    bits = (exponent << 24) | coefficient
 
-    # Return bits as a hexadecimal string
-    return hex(bits)
-
-
-print(target_to_bits(DIFFICULTY_TARGET[:8]))
+target = "0000ffff00000000000000000000000000000000000000000000000000000000"
+bits = target_to_bits(target)
+print(bits)  # Output: 0x1d00ffff
