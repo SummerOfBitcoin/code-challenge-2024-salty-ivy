@@ -325,6 +325,10 @@ def main():
         if transaction.get('vin')[0].get('txid') in valid_mempool:
             transactions.append(transaction)
 
+    
+    if not any(transactions):
+        raise ValueError("No valid transactions to include in the block")
+
     # Mine the block
     block_header, coinbase_tx, txids, nonce, coinbase_tx_hex = mine_block(transactions)
 
