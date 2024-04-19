@@ -6,7 +6,7 @@ import binascii
 
 
 # Constants
-MEMPOOL_DIR = "valid-mempool"
+MEMPOOL_DIR = "mempool"
 OUTPUT_FILE = "output.txt"
 DIFFICULTY_TARGET = "0000ffff00000000000000000000000000000000000000000000000000000000"
 BLOCK_VERSION = 4  # Update to the correct block version
@@ -323,9 +323,10 @@ def validate_block(coinbase_tx, txids, transactions):
 def main():
     # Read transaction files
     transactions = []
+    valid_mempool = json.load(open('valid-mempool.json'))
     for filename in os.listdir(MEMPOOL_DIR):
         transaction = read_transaction_file(filename)
-        if validate_transaction(transaction):
+        if transaction.get('vin')[0].get('txid') in valid_mempool:
             transactions.append(transaction)
 
     # Mine the block
