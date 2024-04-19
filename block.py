@@ -142,7 +142,7 @@ def mine_block(transactions):
     )
     merkle_root_bytes = bytes.fromhex(merkle_root)
     timestamp_bytes = int(time.time()).to_bytes(4, "little")
-    bits_bytes = bytes.fromhex("1f00ffff")
+    bits_bytes = (0x1f00ffff).to_bytes(4, 'little')
     nonce_bytes = nonce.to_bytes(4, "little")
 
     # Combine the header parts
