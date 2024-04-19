@@ -324,10 +324,10 @@ def main():
     transactions = []
     valid_mempool = set(json.load(open('valid-mempool.json')))
     print(len(valid_mempool))
-    for filename in os.listdir(MEMPOOL_DIR)[:50]:
+    for filename in os.listdir(MEMPOOL_DIR):
         transaction = read_transaction_file(filename)
-        # if transaction.get('vin')[0].get('txid') in valid_mempool:
-        transactions.append(transaction)
+        if transaction.get('vin')[0].get('txid') in valid_mempool:
+            transactions.append(transaction)
 
     # Mine the block
     block_header, coinbase_tx, txids, nonce, coinbase_tx_hex = mine_block(transactions)
