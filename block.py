@@ -324,7 +324,8 @@ def main():
     # Read transaction files
     transactions = []
     valid_mempool = json.load(open('valid-mempool.json'))
-    for filename in os.listdir(MEMPOOL_DIR):
+    print(len(valid_mempool))
+    for filename in os.listdir(MEMPOOL_DIR)[:10]:
         transaction = read_transaction_file(filename)
         if transaction.get('vin')[0].get('txid') in valid_mempool:
             transactions.append(transaction)
