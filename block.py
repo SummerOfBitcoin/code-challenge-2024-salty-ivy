@@ -108,6 +108,7 @@ def mine_block(transactions):
 
     # Calculate the Merkle root of the transactions
     merkle_root = generate_merkle_root(txids)
+    print(merkle_root)
 
     # Construct the block header
     block_version_bytes = BLOCK_VERSION.to_bytes(4, "little")
@@ -145,6 +146,10 @@ def mine_block(transactions):
 
     block_header_hex = block_header.hex()
     validate_header(block_header_hex, DIFFICULTY_TARGET)
+    print(block_header_hex)
+    header_bytes = bytes.fromhex(block_header_hex)
+    merkle_root_from_header = header_bytes[36:68].hex()
+    print(merkle_root == merkle_root_from_header)
     return block_header_hex, coinbase_tx, txids, nonce, coinbase_tx_hex
 
 
@@ -176,29 +181,29 @@ def generate_merkle_root(txids):
     return level[0]
 
 
-def calculate_merkle_root(txids):
-    """
-    Calculate the Merkle root of the transactions.
-    """
-    if not txids:
-        return None
+# def calculate_merkle_root(txids):
+#     """
+#     Calculate the Merkle root of the transactions.
+#     """
+#     if not txids:
+#         return None
 
-    # Reverse the txids
-    txids = [txid[::-1] for txid in txids]
+#     # Reverse the txids
+#     txids = [txid[::-1] for txid in txids]
 
-    while len(txids) > 1:
-        next_level = []
-        for i in range(0, len(txids), 2):
-            left = txids[i]
-            right = txids[i + 1] if i + 1 < len(txids) else left
-            pair_hash = hashlib.sha256(
-                hashlib.sha256((left + right).encode()).digest()
-            ).hexdigest()
-            next_level.append(pair_hash)
-        txids = next_level
-    return txids[0][
-        ::-1
-    ]  # Reverse the final result to match Bitcoin's internal byte order
+#     while len(txids) > 1:
+#         next_level = []
+#         for i in range(0, len(txids), 2):
+#             left = txids[i]
+#             right = txids[i + 1] if i + 1 < len(txids) else left
+#             pair_hash = hashlib.sha256(
+#                 hashlib.sha256((left + right).encode()).digest()
+#             ).hexdigest()
+#             next_level.append(pair_hash)
+#         txids = next_level
+#     return txids[0][
+#         ::-1
+#     ]  # Reverse the final result to match Bitcoin's internal byte order
 
 
 def validate_coinbase_transaction(coinbase_tx):
@@ -257,7 +262,7 @@ def calculate_witness_commitment(transactions):
         wtxids.append(tx["wtxid"])
 
     # Calculate the witness root hash
-    witness_root = calculate_merkle_root(wtxids)
+    witness_root = generate_merkle_root(wtxids)
     # Concatenate the witness root with the witness reserved value and hash the result
     witness_commitment = hashlib.sha256(
         hashlib.sha256((witness_root + WITNESS_RESERVED_VALUE).encode()).digest()
