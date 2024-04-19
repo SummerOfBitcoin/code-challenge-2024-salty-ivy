@@ -6,7 +6,7 @@ import binascii
 
 
 # Constants
-MEMPOOL_DIR = "mempool"
+MEMPOOL_DIR = "valid-mempool"
 OUTPUT_FILE = "output.txt"
 DIFFICULTY_TARGET = "0000ffff00000000000000000000000000000000000000000000000000000000"
 BLOCK_VERSION = 4  # Update to the correct block version
