@@ -4,6 +4,9 @@ import hashlib
 import time
 import binascii
 from coinbase import serialize_coinbase_transaction
+from txid import serialize_txn
+from utils import to_hash256, to_reverse_bytes_string
+from wtxid import wtxid_serialize
 
 
 # Constants
@@ -33,11 +36,15 @@ def read_transaction_file(filename):
     """
     with open(os.path.join(MEMPOOL_DIR, filename), "r") as file:
         transaction = json.load(file)
+    transaction["txid"] = to_reverse_bytes_string(to_hash256(serialize_txn(transaction)))
     transaction["weight"] = 1  # Assign a fixed weight of 1 for simplicity
-    transaction["wtxid"] = hashlib.sha256(json.dumps(transaction).encode()).hexdigest()
+    transaction["wtxid"] = to_reverse_bytes_string(to_hash256(wtxid_serialize(transaction)))
     transaction["fee"] = transaction.get(
         "fee", get_fee(transaction)
     )  # Assign a default fee if not present
+    if filename == "0a8b21af1cfcc26774df1f513a72cd362a14f5a598ec39d915323078efb5a240.json":
+        print("matched **************")
+        print(transaction["txid"])
     return transaction
 
 
@@ -339,12 +346,10 @@ def main():
     # Read transaction files
     transactions = []
     valid_mempool = set(json.load(open("valid-mempool.json")))
-    print(len(valid_mempool))
-    for filename in os.listdir(MEMPOOL_DIR)[:2000]:
+    for filename in os.listdir(MEMPOOL_DIR)[:5000]:
         transaction = read_transaction_file(filename)
-        if transaction.get("vin")[0].get("txid") in valid_mempool:
+        if transaction.get('txid') in valid_mempool:
             transactions.append(transaction)
-
     if not any(transactions):
         raise ValueError("No valid transactions to include in the block")
 

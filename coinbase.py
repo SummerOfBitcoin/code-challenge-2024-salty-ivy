@@ -73,10 +73,3 @@ def serialize_coinbase_transaction(witness_commitment):
     serialized_tx += tx_dict["locktime"]
 
     return serialized_tx
-
-
-# print(
-#     serialize_coinbase_transaction(
-#         "70abba37abfc827ed0848d3bc42da00a0e238512ba2bed3c3bf30a71937294f1"
-#     )
-# )
