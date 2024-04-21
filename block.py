@@ -38,7 +38,7 @@ def read_transaction_file(filename):
         transaction = json.load(file)
     transaction["txid"] = to_reverse_bytes_string(to_hash256(serialize_txn(transaction)))
     transaction["weight"] = 1  # Assign a fixed weight of 1 for simplicity
-    transaction["wtxid"] = to_reverse_bytes_string(to_hash256(wtxid_serialize(transaction)))
+    transaction["wtxid"] = to_hash256(wtxid_serialize(transaction))
     transaction["fee"] = transaction.get(
         "fee", get_fee(transaction)
     )  # Assign a default fee if not present
