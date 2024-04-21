@@ -11,9 +11,12 @@ MEMPOOL_DIR = "mempool"
 OUTPUT_FILE = "output.txt"
 DIFFICULTY_TARGET = "0000ffff00000000000000000000000000000000000000000000000000000000"
 BLOCK_VERSION = 4  # Update to the correct block version
-WITNESS_RESERVED_VALUE = (
-    "0000000000000000000000000000000000000000000000000000000000000000"
-)
+# Define the witness reserved value in hexadecimal
+WITNESS_RESERVED_VALUE_HEX = '0000000000000000000000000000000000000000000000000000000000000000'
+
+# Convert the hexadecimal string to bytes
+WITNESS_RESERVED_VALUE_BYTES = bytes.fromhex(WITNESS_RESERVED_VALUE_HEX)
+WTXID_COINBASE = bytes(32).hex()
 
 
 def get_fee(transaction):
@@ -265,19 +268,23 @@ def calculate_witness_commitment(transactions):
     """
     Calculate the witness commitment of the transactions in the block.
     """
-    wtxids = []
+    wtxids = [WTXID_COINBASE]
     for tx in transactions:
         # Assuming tx is a dictionary with the structure of the transaction
         # and 'wtxid' is a key in this dictionary representing the transaction's witness transaction ID
         wtxids.append(tx["wtxid"])
-
-    # Calculate the witness root hash
     witness_root = generate_merkle_root(wtxids)
-    # Concatenate the witness root with the witness reserved value and hash the result
-    witness_commitment = hashlib.sha256(
-        hashlib.sha256((witness_root + WITNESS_RESERVED_VALUE).encode()).digest()
-    ).hexdigest()
-    return witness_commitment
+
+    # Convert the WITNESS_RESERVED_VALUE to hex string
+    witness_reserved_value_hex = WITNESS_RESERVED_VALUE_HEX
+
+    # Concatenate the witness root and the witness reserved value
+    combined_data = witness_root + witness_reserved_value_hex
+
+    # Calculate the hash (assuming hash256 is a function that hashes data with SHA-256 twice)
+    witness_commitment = hashlib.sha256(hashlib.sha256(combined_data.encode()).digest()).digest()
+
+    return witness_commitment.hex()
 
 
 def verify_witness_commitment(coinbase_tx, witness_commitment):
