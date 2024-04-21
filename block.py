@@ -52,7 +52,6 @@ def validate_transaction(transaction):
     """
     Validate a transaction.
     """
-    # Placeholder for validation logic
     # For the purpose of this challenge, we assume all transactions are valid
     return True
 
