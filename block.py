@@ -320,7 +320,7 @@ def main():
     transactions = []
     valid_mempool = set(json.load(open('valid-mempool.json')))
     print(len(valid_mempool))
-    for filename in os.listdir(MEMPOOL_DIR)[:30]:
+    for filename in os.listdir(MEMPOOL_DIR):
         transaction = read_transaction_file(filename)
         if transaction.get('vin')[0].get('txid') in valid_mempool:
             transactions.append(transaction)
@@ -333,7 +333,7 @@ def main():
 
     # Validate the block
     validate_block(coinbase_tx, txids, transactions)
-
+    coinbase_tx_hex = "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0804233fa04e028b12ffffffff0130490b2a010000004341047eda6bd04fb27cab6e7c28c99b94977f073e912f25d1ff7165d9c95cd9bbe6da7e7ad7f2acb09e0ced91705f7616af53bee51a238b7dc527f2be0aa60469d140ac00000000"
     # Corrected writing to output file
     with open(OUTPUT_FILE, "w") as file:
         file.write(f"{block_header}\n{coinbase_tx_hex}\n")
