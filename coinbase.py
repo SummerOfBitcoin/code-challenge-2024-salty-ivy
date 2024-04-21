@@ -1,10 +1,14 @@
+from txid import serialize_txn
+from utils import to_hash256, to_reverse_bytes_string
+
+
 def serialize_coinbase_transaction(witness_commitment):
     tx_dict = {
         "version": "01000000",
         "marker": "00",
         "flag": "01",
         "inputcount": "01",
-        "inputs": [
+        "vin": [
             {
                 "txid": "0000000000000000000000000000000000000000000000000000000000000000",
                 "vout": "ffffffff",
@@ -14,7 +18,7 @@ def serialize_coinbase_transaction(witness_commitment):
             }
         ],
         "outputcount": "02",
-        "outputs": [
+        "vout": [
             {
                 "amount": "f595814a00000000",
                 "scriptpubkeysize": "19",
@@ -72,4 +76,4 @@ def serialize_coinbase_transaction(witness_commitment):
     # Locktime
     serialized_tx += tx_dict["locktime"]
 
-    return serialized_tx
+    return serialized_tx, to_reverse_bytes_string(to_hash256(serialize_txn(tx_dict)))

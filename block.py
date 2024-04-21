@@ -149,10 +149,11 @@ def mine_block(transactions):
     #     ]
     # )
 
-    coinbase_hex = serialize_coinbase_transaction(
+    coinbase_hex, coinbase_tx = serialize_coinbase_transaction(
         witness_commitment=witness_commitment
     )
 
+    print(coinbase_tx)
     # Calculate the Merkle root of the transactions
     merkle_root = generate_merkle_root(txids)
 
@@ -358,7 +359,7 @@ def main():
 
     # Validate the block
     # validate_block(coinbase_tx, txids, transactions)
-
+    print(coinbase_tx())
     # Corrected writing to output file
     with open(OUTPUT_FILE, "w") as file:
         file.write(f"{block_header}\n{coinbase_tx_hex}\n")
