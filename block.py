@@ -275,7 +275,8 @@ def calculate_witness_commitment(transactions):
     Calculate the witness commitment of the transactions in the block.
     """
     wtxids = [WTXID_COINBASE]
-    for tx in transactions:
+    transactions_new = transactions[1:]
+    for tx in transactions_new:
         # Assuming tx is a dictionary with the structure of the transaction
         # and 'wtxid' is a key in this dictionary representing the transaction's witness transaction ID
         wtxids.append(tx["wtxid"])
