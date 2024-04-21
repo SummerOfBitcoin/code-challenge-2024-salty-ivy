@@ -8,4 +8,6 @@ WITNESS_RESERVED_VALUE_HEX = '00000000000000000000000000000000000000000000000000
 with open('output.txt', 'r') as file:
     # Read the contents of the file and split it into lines
     lines = file.readlines()
-    txns = []
+    txids = lines[2:]
+
+print(txids[0])
