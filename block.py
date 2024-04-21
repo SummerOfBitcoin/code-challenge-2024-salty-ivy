@@ -42,9 +42,6 @@ def read_transaction_file(filename):
     transaction["fee"] = transaction.get(
         "fee", get_fee(transaction)
     )  # Assign a default fee if not present
-    if filename == "0a8b21af1cfcc26774df1f513a72cd362a14f5a598ec39d915323078efb5a240.json":
-        print("matched **************")
-        print(transaction["txid"])
     return transaction
 
 
@@ -114,6 +111,7 @@ def mine_block(transactions):
 
     # Create a coinbase transaction with no inputs and two outputs: one for the block reward and one for the witness commitment
     witness_commitment = calculate_witness_commitment(transactions)
+    print("witneness commitment:", witness_commitment)
     # coinbase_tx = {
     #     "vin": [
     #         {"coinbase": "arbitrary data here", "witness": [WITNESS_RESERVED_VALUE]}
@@ -152,7 +150,6 @@ def mine_block(transactions):
         witness_commitment=witness_commitment
     )
 
-    print(coinbase_txid)
     # Calculate the Merkle root of the transactions
     merkle_root = generate_merkle_root([coinbase_txid]+txids)
 

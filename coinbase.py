@@ -114,4 +114,5 @@ def serialize_coinbase_transaction(witness_commitment):
     # Locktime
     serialized_tx += tx_dict["locktime"]
 
+    # print(serialize_txn(tx_dict_modified))
     return serialized_tx, to_reverse_bytes_string(to_hash256(serialize_txn(tx_dict_modified)))
