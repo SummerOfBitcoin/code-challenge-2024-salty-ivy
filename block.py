@@ -149,13 +149,13 @@ def mine_block(transactions):
     #     ]
     # )
 
-    coinbase_hex, coinbase_tx = serialize_coinbase_transaction(
+    coinbase_hex, coinbase_txid = serialize_coinbase_transaction(
         witness_commitment=witness_commitment
     )
 
-    print(coinbase_tx)
+    print(coinbase_txid)
     # Calculate the Merkle root of the transactions
-    merkle_root = generate_merkle_root(txids)
+    merkle_root = generate_merkle_root([coinbase_txid]+txids)
 
     # Construct the block header
     block_version_bytes = BLOCK_VERSION.to_bytes(4, "little")
@@ -195,7 +195,7 @@ def mine_block(transactions):
     block_header_hex = block_header.hex()
     validate_header(block_header_hex, DIFFICULTY_TARGET)
 
-    return block_header_hex, txids, nonce, coinbase_hex
+    return block_header_hex, txids, nonce, coinbase_hex, coinbase_txid
 
 
 def hash256(hex):
@@ -355,14 +355,13 @@ def main():
         raise ValueError("No valid transactions to include in the block")
 
     # Mine the block
-    block_header, txids, nonce, coinbase_tx_hex = mine_block(transactions)
+    block_header, txids, nonce, coinbase_tx_hex, coinbase_txid = mine_block(transactions)
 
     # Validate the block
     # validate_block(coinbase_tx, txids, transactions)
-    print(coinbase_tx())
     # Corrected writing to output file
     with open(OUTPUT_FILE, "w") as file:
-        file.write(f"{block_header}\n{coinbase_tx_hex}\n")
+        file.write(f"{block_header}\n{coinbase_tx_hex}\n{coinbase_txid}\n")
         file.writelines(f"{txid}\n" for txid in txids)
 
     # Print the total weight and fee of the transactions in the block

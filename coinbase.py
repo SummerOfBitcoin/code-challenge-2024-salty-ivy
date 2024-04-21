@@ -8,7 +8,7 @@ def serialize_coinbase_transaction(witness_commitment):
         "marker": "00",
         "flag": "01",
         "inputcount": "01",
-        "vin": [
+        "inputs": [
             {
                 "txid": "0000000000000000000000000000000000000000000000000000000000000000",
                 "vout": "ffffffff",
@@ -18,7 +18,7 @@ def serialize_coinbase_transaction(witness_commitment):
             }
         ],
         "outputcount": "02",
-        "vout": [
+        "outputs": [
             {
                 "amount": "f595814a00000000",
                 "scriptpubkeysize": "19",
@@ -40,6 +40,44 @@ def serialize_coinbase_transaction(witness_commitment):
             }
         ],
         "locktime": "00000000",
+    }
+    tx_dict_modified = {
+        "version": 1,
+        "marker": "00",
+        "flag": "01",
+        "inputcount": "01",
+        "vin": [
+            {
+                "txid": "0000000000000000000000000000000000000000000000000000000000000000",
+                "vout": int("ffffffff", 16),
+                "scriptsigsize": 37,
+                "scriptsig": "03233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100",
+                "sequence": int("ffffffff", 16),
+            }
+        ],
+        "outputcount": "02",
+        "vout": [
+            {
+                "value": 2753059167,
+                "scriptpubkeysize": "19",
+                "scriptpubkey": "76a914edf10a7fac6b32e24daa5305c723f3de58db1bc888ac",
+            },
+            {
+                "value": 0,
+                "scriptpubkeysize": "26",
+                "scriptpubkey": f"6a24aa21a9ed{witness_commitment}",
+            },
+        ],
+        "witness": [
+            {
+                "stackitems": "01",
+                "0": {
+                    "size": "20",
+                    "item": "0000000000000000000000000000000000000000000000000000000000000000",
+                },
+            }
+        ],
+        "locktime": 0,
     }
     # Version
     serialized_tx = tx_dict["version"]
@@ -76,4 +114,4 @@ def serialize_coinbase_transaction(witness_commitment):
     # Locktime
     serialized_tx += tx_dict["locktime"]
 
-    return serialized_tx, to_reverse_bytes_string(to_hash256(serialize_txn(tx_dict)))
+    return serialized_tx, to_reverse_bytes_string(to_hash256(serialize_txn(tx_dict_modified)))
