@@ -109,9 +109,8 @@ def mine_block(transactions):
     """
     nonce = 0
     txids = [
-        tx["vin"][0]["txid"]
+        tx["txid"]
         for tx in transactions
-        if "vin" in tx and len(tx["vin"]) > 0 and "txid" in tx["vin"][0]
     ]
 
     # Create a coinbase transaction with no inputs and two outputs: one for the block reward and one for the witness commitment
