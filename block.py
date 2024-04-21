@@ -288,9 +288,9 @@ def calculate_witness_commitment(transactions):
     combined_data = witness_root + witness_reserved_value_hex
 
     # Calculate the hash (assuming hash256 is a function that hashes data with SHA-256 twice)
-    witness_commitment = hashlib.sha256(hashlib.sha256(combined_data.encode()).digest()).digest()
+    witness_commitment = to_hash256(combined_data)
 
-    return witness_commitment.hex()
+    return witness_commitment
 
 
 def verify_witness_commitment(coinbase_tx, witness_commitment):
