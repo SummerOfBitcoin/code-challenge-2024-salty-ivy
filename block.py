@@ -3,6 +3,7 @@ import os
 import hashlib
 import time
 import binascii
+from coinbase import serialize_coinbase_transaction
 
 
 # Constants
@@ -15,6 +16,14 @@ WITNESS_RESERVED_VALUE = (
 )
 
 
+def get_fee(transaction):
+    in_value = [int(i["prevout"]["value"]) for i in transaction["vin"]]
+    total_sum_in_value = sum(in_value)
+    out_value = [int(i["value"]) for i in transaction["vout"]]
+    total_sum_out_value = sum(out_value)
+    return total_sum_in_value - total_sum_out_value
+
+
 def read_transaction_file(filename):
     """
     Read a JSON transaction file and return the transaction data.
@@ -24,7 +33,7 @@ def read_transaction_file(filename):
     transaction["weight"] = 1  # Assign a fixed weight of 1 for simplicity
     transaction["wtxid"] = hashlib.sha256(json.dumps(transaction).encode()).hexdigest()
     transaction["fee"] = transaction.get(
-        "fee", 0
+        "fee", get_fee(transaction)
     )  # Assign a default fee if not present
     return transaction
 
@@ -97,38 +106,42 @@ def mine_block(transactions):
 
     # Create a coinbase transaction with no inputs and two outputs: one for the block reward and one for the witness commitment
     witness_commitment = calculate_witness_commitment(transactions)
-    coinbase_tx = {
-        "vin": [
-            {"coinbase": "arbitrary data here", "witness": [WITNESS_RESERVED_VALUE]}
-        ],
-        "vout": [
-            {
-                "value": "block reward here",
-                "n": 0,
-                "scriptPubKey": {"hex": "miner address here"},
-            },
-            {
-                "value": "0",
-                "n": 1,
-                "scriptPubKey": {"hex": f"6a24aa21a9ed{witness_commitment}"},
-            },
-        ],
-    }
-    # Placeholder values for coinbase transaction parts
-    arbitrary_data = "00000000"  # Typically extranonce data in a real miner
-    block_reward = 5000000000  # Block reward in satoshis (50 BTC for example)
-    miner_address_hex = "76a914" + "0" * 36  # Dummy miner address in hex
+    # coinbase_tx = {
+    #     "vin": [
+    #         {"coinbase": "arbitrary data here", "witness": [WITNESS_RESERVED_VALUE]}
+    #     ],
+    #     "vout": [
+    #         {
+    #             "value": "block reward here",
+    #             "n": 0,
+    #             "scriptPubKey": {"hex": "miner address here"},
+    #         },
+    #         {
+    #             "value": "0",
+    #             "n": 1,
+    #             "scriptPubKey": {"hex": f"6a24aa21a9ed{witness_commitment}"},
+    #         },
+    #     ],
+    # }
+    # # Placeholder values for coinbase transaction parts
+    # arbitrary_data = "00000000"  # Typically extranonce data in a real miner
+    # block_reward = 5000000000  # Block reward in satoshis (50 BTC for example)
+    # miner_address_hex = "76a914" + "0" * 36  # Dummy miner address in hex
 
     # Serialize the coinbase transaction into a hexadecimal string
-    coinbase_tx_hex = "".join(
-        [
-            arbitrary_data,
-            block_reward.to_bytes(8, "little").hex(),
-            miner_address_hex,
-            (0).to_bytes(8, "little").hex(),  # Value for witness commitment output is 0
-            "6a24aa21a9ed",  # OP_RETURN prefix for witness commitment
-            witness_commitment,
-        ]
+    # coinbase_tx_hex = "".join(
+    #     [
+    #         arbitrary_data,
+    #         block_reward.to_bytes(8, "little").hex(),
+    #         miner_address_hex,
+    #         (0).to_bytes(8, "little").hex(),  # Value for witness commitment output is 0
+    #         "6a24aa21a9ed",  # OP_RETURN prefix for witness commitment
+    #         witness_commitment,
+    #     ]
+    # )
+
+    coinbase_hex = serialize_coinbase_transaction(
+        witness_commitment=witness_commitment
     )
 
     # Calculate the Merkle root of the transactions
@@ -141,7 +154,7 @@ def mine_block(transactions):
     )
     merkle_root_bytes = bytes.fromhex(merkle_root)
     timestamp_bytes = int(time.time()).to_bytes(4, "little")
-    bits_bytes = (0x1f00ffff).to_bytes(4, 'little')
+    bits_bytes = (0x1F00FFFF).to_bytes(4, "little")
     nonce_bytes = nonce.to_bytes(4, "little")
 
     # Combine the header parts
@@ -172,7 +185,7 @@ def mine_block(transactions):
     block_header_hex = block_header.hex()
     validate_header(block_header_hex, DIFFICULTY_TARGET)
 
-    return block_header_hex, coinbase_tx, txids, nonce, coinbase_tx_hex
+    return block_header_hex, txids, nonce, coinbase_hex
 
 
 def hash256(hex):
@@ -203,31 +216,31 @@ def generate_merkle_root(txids):
     return level[0]
 
 
-def validate_coinbase_transaction(coinbase_tx):
-    """
-    Validate the coinbase transaction structure.
-    """
-    # Assuming coinbase_tx is a dictionary with the structure of the coinbase transaction
-    if len(coinbase_tx["vin"]) != 1:
-        raise ValueError("Coinbase transaction has invalid input count")
+# def validate_coinbase_transaction(coinbase_tx):
+#     """
+#     Validate the coinbase transaction structure.
+#     """
+#     # Assuming coinbase_tx is a dictionary with the structure of the coinbase transaction
+#     if len(coinbase_tx["vin"]) != 1:
+#         raise ValueError("Coinbase transaction has invalid input count")
 
-    if len(coinbase_tx["vout"]) != 2:
-        raise ValueError("Coinbase transaction must have exactly 2 outputs")
+#     if len(coinbase_tx["vout"]) != 2:
+#         raise ValueError("Coinbase transaction must have exactly 2 outputs")
 
-    input_script = coinbase_tx["vin"][0].get("coinbase", "")
-    if not (2 <= len(input_script) <= 100):
-        raise ValueError("Coinbase transaction input script length is invalid")
+#     input_script = coinbase_tx["vin"][0].get("coinbase", "")
+#     if not (2 <= len(input_script) <= 100):
+#         raise ValueError("Coinbase transaction input script length is invalid")
 
-    if (
-        "witness" not in coinbase_tx["vin"][0]
-        or len(coinbase_tx["vin"][0]["witness"]) == 0
-    ):
-        raise ValueError("Coinbase transaction witness is missing")
+#     if (
+#         "witness" not in coinbase_tx["vin"][0]
+#         or len(coinbase_tx["vin"][0]["witness"]) == 0
+#     ):
+#         raise ValueError("Coinbase transaction witness is missing")
 
-    if coinbase_tx["vin"][0]["witness"][0] != WITNESS_RESERVED_VALUE:
-        raise ValueError(
-            "Coinbase transaction must have witness reserved value as first witness item"
-        )
+#     if coinbase_tx["vin"][0]["witness"][0] != WITNESS_RESERVED_VALUE:
+#         raise ValueError(
+#             "Coinbase transaction must have witness reserved value as first witness item"
+#         )
 
 
 def calculate_total_weight_and_fee(transactions):
@@ -285,7 +298,7 @@ def validate_block(coinbase_tx, txids, transactions):
     Validate the block with the given coinbase transaction and txids.
     """
     # Validate coinbase transaction structure
-    validate_coinbase_transaction(coinbase_tx)
+    # validate_coinbase_transaction(coinbase_tx)
 
     # Read the mempool transactions from the JSON files and create a set of valid txids
     mempool_txids = set()
@@ -318,22 +331,22 @@ def validate_block(coinbase_tx, txids, transactions):
 def main():
     # Read transaction files
     transactions = []
-    valid_mempool = set(json.load(open('valid-mempool.json')))
+    valid_mempool = set(json.load(open("valid-mempool.json")))
     print(len(valid_mempool))
     for filename in os.listdir(MEMPOOL_DIR):
         transaction = read_transaction_file(filename)
-        if transaction.get('vin')[0].get('txid') in valid_mempool:
+        if transaction.get("vin")[0].get("txid") in valid_mempool:
             transactions.append(transaction)
 
     if not any(transactions):
         raise ValueError("No valid transactions to include in the block")
 
     # Mine the block
-    block_header, coinbase_tx, txids, nonce, coinbase_tx_hex = mine_block(transactions)
+    block_header, txids, nonce, coinbase_tx_hex = mine_block(transactions)
 
     # Validate the block
-    validate_block(coinbase_tx, txids, transactions)
-    coinbase_tx_hex = "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0804233fa04e028b12ffffffff0130490b2a010000004341047eda6bd04fb27cab6e7c28c99b94977f073e912f25d1ff7165d9c95cd9bbe6da7e7ad7f2acb09e0ced91705f7616af53bee51a238b7dc527f2be0aa60469d140ac00000000"
+    # validate_block(coinbase_tx, txids, transactions)
+
     # Corrected writing to output file
     with open(OUTPUT_FILE, "w") as file:
         file.write(f"{block_header}\n{coinbase_tx_hex}\n")
