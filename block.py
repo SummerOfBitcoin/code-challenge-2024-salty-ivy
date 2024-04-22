@@ -299,7 +299,7 @@ def main():
     with open("valid-cache.json", "r") as file:
         unverified_txns = json.load(file)
 
-    for tx in unverified_txns[:1900]:
+    for tx in unverified_txns[:2500]:
         verified_tx = pre_process_transaction(tx)
         transactions.append(verified_tx)
 
