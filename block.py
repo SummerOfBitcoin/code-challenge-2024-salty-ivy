@@ -30,18 +30,27 @@ def get_fee(transaction):
     return total_sum_in_value - total_sum_out_value
 
 
+def pre_process_transaction(transaction):
+    """
+    Pre-process a transaction by adding default values and calculating the fee.
+    """
+    transaction["txid"] = to_reverse_bytes_string(to_hash256(serialize_txn(transaction)))
+    transaction["weight"] = 1  # Assign a fixed weight of 1 for simplicity
+    transaction["wtxid"] = to_reverse_bytes_string(to_hash256(wtxid_serialize(transaction)))
+    transaction["fee"] = transaction.get(
+        "fee", get_fee(transaction)
+    )  # Assign a default fee if not present
+    return transaction
+
+
 def read_transaction_file(filename):
     """
     Read a JSON transaction file and return the transaction data.
     """
     with open(os.path.join(MEMPOOL_DIR, filename), "r") as file:
         transaction = json.load(file)
-    transaction["txid"] = to_reverse_bytes_string(to_hash256(serialize_txn(transaction)))
-    transaction["weight"] = 1  # Assign a fixed weight of 1 for simplicity
-    transaction["wtxid"] = to_hash256(wtxid_serialize(transaction))
-    transaction["fee"] = transaction.get(
-        "fee", get_fee(transaction)
-    )  # Assign a default fee if not present
+
+    pre_process_transaction(transaction)
     return transaction
 
 
@@ -341,11 +350,22 @@ def validate_block(coinbase_tx, txids, transactions):
 def main():
     # Read transaction files
     transactions = []
-    valid_mempool = set(json.load(open("valid-mempool.json")))
-    for filename in os.listdir(MEMPOOL_DIR)[:2000]:
-        transaction = read_transaction_file(filename)
-        if transaction.get('txid') in valid_mempool:
-            transactions.append(transaction)
+    with open("valid-mempool.json", "r") as file:
+        valid_mempool = set(json.load(file))
+
+    with open("valid-cache.json", "r") as file:
+        unverified_txns = json.load(file)
+
+    for tx in unverified_txns[:500]:
+        verified_tx = pre_process_transaction(tx)
+        if verified_tx.get('txid') in valid_mempool:
+            transactions.append(verified_tx)
+
+    print(f"Total transactions: {len(transactions)}")
+    # for filename in os.listdir(MEMPOOL_DIR)[:2000]:
+    #     transaction = read_transaction_file(filename)
+    #     if transaction.get('txid') in valid_mempool:
+    #         transactions.append(transaction)
     if not any(transactions):
         raise ValueError("No valid transactions to include in the block")
 
