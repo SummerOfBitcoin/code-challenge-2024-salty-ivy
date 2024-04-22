@@ -135,39 +135,6 @@ def mine_block(transactions):
     # Create a coinbase transaction with no inputs and two outputs: one for the block reward and one for the witness commitment
     witness_commitment = calculate_witness_commitment(transactions)
     print("witneness commitment:", witness_commitment)
-    # coinbase_tx = {
-    #     "vin": [
-    #         {"coinbase": "arbitrary data here", "witness": [WITNESS_RESERVED_VALUE]}
-    #     ],
-    #     "vout": [
-    #         {
-    #             "value": "block reward here",
-    #             "n": 0,
-    #             "scriptPubKey": {"hex": "miner address here"},
-    #         },
-    #         {
-    #             "value": "0",
-    #             "n": 1,
-    #             "scriptPubKey": {"hex": f"6a24aa21a9ed{witness_commitment}"},
-    #         },
-    #     ],
-    # }
-    # # Placeholder values for coinbase transaction parts
-    # arbitrary_data = "00000000"  # Typically extranonce data in a real miner
-    # block_reward = 5000000000  # Block reward in satoshis (50 BTC for example)
-    # miner_address_hex = "76a914" + "0" * 36  # Dummy miner address in hex
-
-    # Serialize the coinbase transaction into a hexadecimal string
-    # coinbase_tx_hex = "".join(
-    #     [
-    #         arbitrary_data,
-    #         block_reward.to_bytes(8, "little").hex(),
-    #         miner_address_hex,
-    #         (0).to_bytes(8, "little").hex(),  # Value for witness commitment output is 0
-    #         "6a24aa21a9ed",  # OP_RETURN prefix for witness commitment
-    #         witness_commitment,
-    #     ]
-    # )
 
     coinbase_hex, coinbase_txid = serialize_coinbase_transaction(
         witness_commitment=witness_commitment
