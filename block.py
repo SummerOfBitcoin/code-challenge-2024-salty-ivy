@@ -45,15 +45,6 @@ def pre_process_transaction(transaction):
     transaction["fee"] = transaction.get(
         "fee", get_fee(transaction)
     )  # Assign a default fee if not present
-    # for each in transaction["vin"]:
-    #     prev = each["prevout"]
-    #     s_type = prev["scriptpubkey_type"]
-    #     if s_type == "p2pkh":
-    #         p2pkh += 1
-    #     if s_type == "v0_p2wpkh":
-    #         p2wpkh += 1
-    #     if s_type == "p2sh":
-    #         p2sh += 1
     return transaction
 
 
@@ -210,33 +201,6 @@ def generate_merkle_root(txids):
             next_level.append(pair_hash)
         level = next_level
     return level[0]
-
-
-# def validate_coinbase_transaction(coinbase_tx):
-#     """
-#     Validate the coinbase transaction structure.
-#     """
-#     # Assuming coinbase_tx is a dictionary with the structure of the coinbase transaction
-#     if len(coinbase_tx["vin"]) != 1:
-#         raise ValueError("Coinbase transaction has invalid input count")
-
-#     if len(coinbase_tx["vout"]) != 2:
-#         raise ValueError("Coinbase transaction must have exactly 2 outputs")
-
-#     input_script = coinbase_tx["vin"][0].get("coinbase", "")
-#     if not (2 <= len(input_script) <= 100):
-#         raise ValueError("Coinbase transaction input script length is invalid")
-
-#     if (
-#         "witness" not in coinbase_tx["vin"][0]
-#         or len(coinbase_tx["vin"][0]["witness"]) == 0
-#     ):
-#         raise ValueError("Coinbase transaction witness is missing")
-
-#     if coinbase_tx["vin"][0]["witness"][0] != WITNESS_RESERVED_VALUE:
-#         raise ValueError(
-#             "Coinbase transaction must have witness reserved value as first witness item"
-#         )
 
 
 def calculate_total_weight_and_fee(transactions):
