@@ -21,6 +21,10 @@ WITNESS_RESERVED_VALUE_HEX = '00000000000000000000000000000000000000000000000000
 WITNESS_RESERVED_VALUE_BYTES = bytes.fromhex(WITNESS_RESERVED_VALUE_HEX)
 WTXID_COINBASE = bytes(32).hex()
 
+# p2pkh = 0
+# p2wpkh = 0
+# p2sh = 0
+
 
 def get_fee(transaction):
     in_value = [int(i["prevout"]["value"]) for i in transaction["vin"]]
@@ -34,12 +38,22 @@ def pre_process_transaction(transaction):
     """
     Pre-process a transaction by adding default values and calculating the fee.
     """
+    global p2pkh, p2wpkh, p2sh
     transaction["txid"] = to_reverse_bytes_string(to_hash256(serialize_txn(transaction)))
     transaction["weight"] = 1  # Assign a fixed weight of 1 for simplicity
     transaction["wtxid"] = to_reverse_bytes_string(to_hash256(wtxid_serialize(transaction)))
     transaction["fee"] = transaction.get(
         "fee", get_fee(transaction)
     )  # Assign a default fee if not present
+    # for each in transaction["vin"]:
+    #     prev = each["prevout"]
+    #     s_type = prev["scriptpubkey_type"]
+    #     if s_type == "p2pkh":
+    #         p2pkh += 1
+    #     if s_type == "v0_p2wpkh":
+    #         p2wpkh += 1
+    #     if s_type == "p2sh":
+    #         p2sh += 1
     return transaction
 
 
@@ -377,6 +391,9 @@ def main():
     total_weight, total_fee = calculate_total_weight_and_fee(transactions)
     print(f"Total weight: {total_weight}")
     print(f"Total fee: {total_fee}")
+    # print(f"Total p2pkh: {p2pkh}")
+    # print(f"Total p2wpkh: {p2wpkh}")
+    # print(f"Total p2sh: {p2sh}")
 
 
 if __name__ == "__main__":
