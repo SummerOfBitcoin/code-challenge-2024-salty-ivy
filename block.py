@@ -350,22 +350,16 @@ def validate_block(coinbase_tx, txids, transactions):
 def main():
     # Read transaction files
     transactions = []
-    with open("valid-mempool.json", "r") as file:
-        valid_mempool = set(json.load(file))
 
     with open("valid-cache.json", "r") as file:
         unverified_txns = json.load(file)
 
-    for tx in unverified_txns[:2000]:
+    for tx in unverified_txns[:1000]:
         verified_tx = pre_process_transaction(tx)
-        if verified_tx.get('txid') in valid_mempool:
-            transactions.append(verified_tx)
+        transactions.append(verified_tx)
 
     print(f"Total transactions: {len(transactions)}")
-    # for filename in os.listdir(MEMPOOL_DIR)[:2000]:
-    #     transaction = read_transaction_file(filename)
-    #     if transaction.get('txid') in valid_mempool:
-    #         transactions.append(transaction)
+
     if not any(transactions):
         raise ValueError("No valid transactions to include in the block")
 
