@@ -356,7 +356,7 @@ def main():
     with open("valid-cache.json", "r") as file:
         unverified_txns = json.load(file)
 
-    for tx in unverified_txns[:5000]:
+    for tx in unverified_txns[:2000]:
         verified_tx = pre_process_transaction(tx)
         if verified_tx.get('txid') in valid_mempool:
             transactions.append(verified_tx)
